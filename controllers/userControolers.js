@@ -1,3 +1,4 @@
+require('dotenv').config()
 const User = require('../models/userSchema')
 const argon2 = require('argon2')
 const jwt = require('jsonwebtoken')
@@ -35,4 +36,45 @@ const userRegister = async (req , res) => {
      }
 }
 
-module.exports = {userRegister}
+const userLogin = async (req,res) => {
+    const {email,password} = req.body
+    try {
+        const isUser = await User.findOne({email})
+
+        if(!isUser) {
+            return res.status(404).json({
+                success:false,
+                message: 'user not register'
+            })
+        }
+
+        const isPassword = await argon2.verify(isUser.password , password)
+
+        if(!isPassword) {
+            return res.status(401).json({
+                success:false,
+                message:'Password or email wrong'
+            })
+        }
+
+        const accessToken = jwt.sign({
+            userId : isUser._id,
+            useRole : isUser.role
+        }, process.env.JWT_PRIVATE_KEY ,{
+            expiresIn : '1d'
+        })
+
+        res.cookie(accessToken)
+
+        return res.status(200).json({
+            success:true,
+            message : 'user login successfully'
+        })
+    } catch (error) {
+         res.status(500).json({
+            success:false,
+            message : `Internal server error : ${error.message}`
+        })
+    }
+}
+module.exports = {userRegister,userLogin}
