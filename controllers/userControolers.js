@@ -77,4 +77,13 @@ const userLogin = async (req,res) => {
         })
     }
 }
+
+const changePassword = async (req,res) => {
+    const {oldPassword,newPassword} = req.body
+     try {
+        
+     } catch (error) {
+        
+     }
+}
 module.exports = {userRegister,userLogin}
